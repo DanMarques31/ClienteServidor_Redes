@@ -1,57 +1,70 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <string.h>
+
+#define PORT 8080
 
 int main() {
-    int clientSocket;
-    struct sockaddr_in serverAddr;
 
-    // Crie um socket
-    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (clientSocket == -1) {
-        perror("Erro ao criar o socket");
-        exit(1);
+    int sock = 0;
+    struct sockaddr_in serv_addr;
+    
+    char buffer[1024] = {0};
+    
+    // Criação do socket do cliente
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("\n Falha na criação do socket \n");
+        return -1;
     }
-
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(8080);
-
-    // Conecte-se ao servidor
-    if (connect(clientSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
-        perror("Erro ao conectar ao servidor");
-        exit(1);
+  
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+      
+    // Convertendo endereço IPv4 e IPv6 para binário e armazenando no struct sockaddr_in
+    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+        printf("\nEndereço inválido ou não suportado \n");
+        return -1;
     }
+  
+  	// Conectando ao servidor
+  	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+    	printf("\nConexão falhou \n");
+    	return -1;
+  	}
 
-    int adivinhacao;
-    int tentativas = 0;
+  	// Lógica do jogo
+  	int attempts = 3; // Cada jogador tem três tentativas
+  	
+  	while(attempts > 0) {
+        read(sock , buffer, 1024);
+    
+        if(strcmp(buffer, "Sua vez de jogar.") == 0) {
 
-    while (1) {
-        printf("Tentativa %d: ", tentativas + 1);
-        scanf("%d", &adivinhacao);
-
-        send(clientSocket, &adivinhacao, sizeof(int), 0);
-        recv(clientSocket, &tentativas, sizeof(int), 0);
-
-        if (adivinhacao == tentativas) {
-            printf("Correto! Você adivinhou em %d tentativas.\n", tentativas);
-            break;
-        } else {
-            printf("Incorreto. Tente novamente.\n");
+            printf("Digite um número entre 1 e 15: ");
+            char number[3];
+            fgets(number, 3, stdin);
+            send(sock , number , strlen(number) , 0 );
+            attempts--;
+    } 
+    
+        else {
+            printf("Aguarde a sua vez.\n");
         }
+    	
+    	if(strcmp(buffer, "Parabéns! Você acertou o número!") == 0) {
+      		break;
+    	}
+    	
+    	attempts--;
+    	
+    	if(attempts == 0) {
+      		printf("Fim de jogo! Você não acertou o número.\n");
+    	}
+    	
+    	memset(buffer, 0, sizeof(buffer));
+  	}
 
-        if (tentativas >= 3) {
-            printf("Você excedeu o número máximo de tentativas.\n");
-            break;
-        }
-    }
-
-    close(clientSocket);
-
-    return 0;
+  	return 0;
 }
