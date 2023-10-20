@@ -13,7 +13,7 @@ int main() {
     int socket_server, socket1, socket2;
     struct sockaddr_in address; // Estrutura com detalhes do server (Endereço IP, porta)
     int opcao = 1;
-    int addrlen = sizeof(address); // Tamanho da estrutura addres
+    int addrlen = sizeof(address); // Tamanho da estrutura address
     char buffer1[MAX_BUFFER] = {0}; // Buffers para armazenamento das mensagens recebidas dos clientes
     char buffer2[MAX_BUFFER] = {0};
     char *mensagem; // String usada para enviar mensagens aos clientes
@@ -67,10 +67,12 @@ int main() {
     int turno = rand() % 2; // Decide aleatoriamente quem começa
 
     while(tentativas > 0) {
-
+            
         int socket_atual = turno % 2 == 0 ? socket1 : socket2;
         int outro_socket = turno % 2 == 0 ? socket2 : socket1;
         char* buffer_atual = turno % 2 == 0 ? buffer1 : buffer2;
+
+        memset(buffer_atual, 0, sizeof(buffer_atual));
 
         // Indica ao cliente atual que é a sua vez de jogar
         mensagem = "Sua vez de jogar.";
@@ -80,25 +82,34 @@ int main() {
         mensagem = "Aguarde a sua vez.";
         send(outro_socket , mensagem , strlen(mensagem) , 0 );
 
-        read(socket_atual , buffer_atual, MAX_BUFFER);
-        int guessed_number = atoi(buffer_atual);
+        read(socket_atual, buffer_atual, MAX_BUFFER);
+        
+        int guessed_number;
+        
+        if(sscanf(buffer_atual, "%d", &guessed_number) != 1) {
+            printf("Erro: entrada inválida recebida do cliente.\n");
+            continue;
+        }
 
         if(guessed_number == num_adivinha) {
 
             mensagem = "Parabéns! Você acertou o número!";
-            send(socket_atual , mensagem , strlen(mensagem) , 0 );
+            send(socket_atual, mensagem, strlen(mensagem), 0 );
             break;
         } 
         
         else if(guessed_number > num_adivinha) {
             mensagem = "O número que você precisa adivinhar é menor!";
+            send(socket_atual , mensagem , strlen(mensagem) , 0 );
+            
         } 
         
         else {
             mensagem = "O número que você precisa adivinhar é maior!";
+            send(socket_atual , mensagem , strlen(mensagem) , 0 );
         }
          
-         tentativas--;
+        tentativas--;
          
         if(tentativas == 0) {
 
@@ -113,7 +124,14 @@ int main() {
             send(socket2 , mensagem , strlen(mensagem) , 0 );
              
             // Verifica se ambos os jogadores acertaram o número ao mesmo tempo
-            if(atoi(buffer1) == num_adivinha && atoi(buffer2) == num_adivinha) {
+            int guess1, guess2;
+            
+            if(sscanf(buffer1, "%d", &guess1) != 1 || sscanf(buffer2, "%d", &guess2) != 1) {
+                printf("Erro: entrada inválida recebida do cliente.\n");
+                continue;
+            }
+            
+            if(guess1 == num_adivinha && guess2 == num_adivinha) {
 
                 mensagem = "Empate! Ambos os jogadores acertaram o número ao mesmo tempo.";
                 send(socket1 , mensagem , strlen(mensagem) , 0 );

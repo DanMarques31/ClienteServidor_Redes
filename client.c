@@ -22,7 +22,7 @@ int main() {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTA);
       
-    // Convertendo endereço IPv4 e IPv6 para binário e armazenando no struct sockaddr_in
+    // Convertendo endereço ip para binário e armazenando no struct sockaddr_in
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
         printf("\nEndereço inválido ou não suportado \n");
         return -1;
@@ -40,27 +40,30 @@ int main() {
   	while (attempts > 0) {
         read(sock , buffer, 1024);
     
-        if(strcmp(buffer, "Sua vez de jogar.") == 0) {
-
-            printf("Digite um número entre 1 e 15: ");
-            char number[3];
-            fgets(number, 3, stdin);
-            send(sock , number , strlen(number) , 0 );
-            attempts--;
-        } 
-    
-        else {
-            printf("Aguarde a sua vez.\n");
+        while(strcmp(buffer, "Sua vez de jogar.") != 0) {
+            printf("%s\n", buffer);
+            memset(buffer, 0, sizeof(buffer));
+            read(sock , buffer, 1024);
         }
+
+        printf("Digite um número entre 1 e 15: ");
+        char number[3];
+        fgets(number, 3, stdin);
+        send(sock , number , strlen(number) , 0 );
+        attempts--;
+        
+        // Limpa o buffer depois de enviar um palpite
+        memset(buffer, 0, sizeof(buffer));
+        
+        // Lê a próxima mensagem do servidor
+        read(sock , buffer, 1024);
     	
     	if (strcmp(buffer, "Parabéns! Você acertou o número!") == 0) {
       		break;
     	}
     	
-    	attempts--;
-    	
-    	if (attempts == 0) {
-      		printf("Fim de jogo! Você não acertou o número.\n");
+    	if (strcmp(buffer, "Fim de jogo! Você não acertou o número.") == 0) {
+      		break;
     	}
     	
     	memset(buffer, 0, sizeof(buffer));
