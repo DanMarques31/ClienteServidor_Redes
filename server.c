@@ -64,13 +64,13 @@ int main() {
     printf("O número gerado foi: %d\n", num_adivinha);
 
     int tentativas = 6; // Total de tentativas (3 para cada jogador)
-    int turn = rand() % 2; // Decide aleatoriamente quem começa
+    int turno = rand() % 2; // Decide aleatoriamente quem começa
 
     while(tentativas > 0) {
 
-        int socket_atual = turn % 2 == 0 ? socket1 : socket2;
-        int outro_socket = turn % 2 == 0 ? socket2 : socket1;
-        char* buffer_atual = turn % 2 == 0 ? buffer1 : buffer2;
+        int socket_atual = turno % 2 == 0 ? socket1 : socket2;
+        int outro_socket = turno % 2 == 0 ? socket2 : socket1;
+        char* buffer_atual = turno % 2 == 0 ? buffer1 : buffer2;
 
         // Indica ao cliente atual que é a sua vez de jogar
         mensagem = "Sua vez de jogar.";
@@ -125,7 +125,7 @@ int main() {
             memset(buffer2, 0, sizeof(buffer2));
         }
          
-        turn++;
+        turno++;
     }
 
     return 0;

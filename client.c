@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define PORT 8080
+#define PORTA 8080
 
 int main() {
 
@@ -20,10 +20,10 @@ int main() {
     }
   
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_port = htons(PORTA);
       
     // Convertendo endereço IPv4 e IPv6 para binário e armazenando no struct sockaddr_in
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
         printf("\nEndereço inválido ou não suportado \n");
         return -1;
     }
@@ -37,7 +37,7 @@ int main() {
   	// Lógica do jogo
   	int attempts = 3; // Cada jogador tem três tentativas
   	
-  	while(attempts > 0) {
+  	while (attempts > 0) {
         read(sock , buffer, 1024);
     
         if(strcmp(buffer, "Sua vez de jogar.") == 0) {
@@ -47,19 +47,19 @@ int main() {
             fgets(number, 3, stdin);
             send(sock , number , strlen(number) , 0 );
             attempts--;
-    } 
+        } 
     
         else {
             printf("Aguarde a sua vez.\n");
         }
     	
-    	if(strcmp(buffer, "Parabéns! Você acertou o número!") == 0) {
+    	if (strcmp(buffer, "Parabéns! Você acertou o número!") == 0) {
       		break;
     	}
     	
     	attempts--;
     	
-    	if(attempts == 0) {
+    	if (attempts == 0) {
       		printf("Fim de jogo! Você não acertou o número.\n");
     	}
     	
