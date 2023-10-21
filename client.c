@@ -34,10 +34,10 @@ int main() {
     	return -1;
   	}
 
-  	// Lógica do jogo
-  	int attempts = 3; // Cada jogador tem três tentativas
+    // Lógica do jogo
+  	int tentativas = 3; // Cada jogador tem três tentativas
   	
-  	while (attempts > 0) {
+  	while (tentativas > 0) {
         read(sock , buffer, 1024);
     
         while(strcmp(buffer, "Sua vez de jogar.") != 0) {
@@ -50,7 +50,7 @@ int main() {
         char number[3];
         fgets(number, 3, stdin);
         send(sock , number , strlen(number) , 0 );
-        attempts--;
+        tentativas--;
         
         // Limpa o buffer depois de enviar um palpite
         memset(buffer, 0, sizeof(buffer));

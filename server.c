@@ -8,6 +8,17 @@
 #define PORTA 8080
 #define MAX_BUFFER 1024
 
+// Função para enviar mensagens para os clientes
+void enviar_mensagem(int socket, char *mensagem) {
+    send(socket, mensagem, strlen(mensagem), 0);
+}
+
+// Função para receber tentativas dos clientes
+int receber_tentativa(int socket, char *buffer) {
+    memset(buffer, 0, MAX_BUFFER);
+    return read(socket, buffer, MAX_BUFFER);
+}
+
 int main() {
     
     int socket_server, socket1, socket2;
@@ -74,68 +85,50 @@ int main() {
 
         memset(buffer_atual, 0, sizeof(buffer_atual));
 
-        // Indica ao cliente atual que é a sua vez de jogar
-        mensagem = "Sua vez de jogar.";
-        send(socket_atual , mensagem , strlen(mensagem) , 0 );
+        enviar_mensagem(socket_atual, "Sua vez de jogar.");
+        enviar_mensagem(outro_socket, "Aguarde a sua vez.");
 
-        // Indica ao outro cliente que não é a sua vez de jogar
-        mensagem = "Aguarde a sua vez.";
-        send(outro_socket , mensagem , strlen(mensagem) , 0 );
+        // Receba a tentativa do jogador atual
+        if (receber_tentativa(socket_atual, buffer_atual) < 0) {
+            perror("Falha na leitura da tentativa");
+            break;
+        }
 
-        read(socket_atual, buffer_atual, MAX_BUFFER);
-        
         int guessed_number;
-        
-        if(sscanf(buffer_atual, "%d", &guessed_number) != 1) {
+
+        if (sscanf(buffer_atual, "%d", &guessed_number) != 1) {
             printf("Erro: entrada inválida recebida do cliente.\n");
             continue;
         }
 
         if(guessed_number == num_adivinha) {
-
-            mensagem = "Parabéns! Você acertou o número!";
-            send(socket_atual, mensagem, strlen(mensagem), 0 );
-            break;
+            enviar_mensagem(socket_atual, "Parabéns! Você acertou o número!");
         } 
         
         else if(guessed_number > num_adivinha) {
-            mensagem = "O número que você precisa adivinhar é menor!";
-            send(socket_atual , mensagem , strlen(mensagem) , 0 );
-            
+            enviar_mensagem(socket_atual, "O número que você precisa adivinhar é menor!");
         } 
         
         else {
-            mensagem = "O número que você precisa adivinhar é maior!";
-            send(socket_atual , mensagem , strlen(mensagem) , 0 );
+            enviar_mensagem(socket_atual, "O número que você precisa adivinhar é maior!");
         }
          
         tentativas--;
          
         if(tentativas == 0) {
-
-            mensagem = "Fim de jogo! Nenhum dos jogadores acertou o número.";
-            send(socket1 , mensagem , strlen(mensagem) , 0 );
-            send(socket2 , mensagem , strlen(mensagem) , 0 );
+            enviar_mensagem(socket1, "Fim de jogo! Nenhum dos jogadores acertou o número.");
+            enviar_mensagem(socket2, "Fim de jogo! Nenhum dos jogadores acertou o número.");
         } 
          
         else if(tentativas % 2 == 0) { // Apenas envia a mensagem quando ambos os jogadores tiverem respondido
             
-            send(socket1 , mensagem , strlen(mensagem) , 0 );
-            send(socket2 , mensagem , strlen(mensagem) , 0 );
-             
             // Verifica se ambos os jogadores acertaram o número ao mesmo tempo
             int guess1, guess2;
             
-            if(sscanf(buffer1, "%d", &guess1) != 1 || sscanf(buffer2, "%d", &guess2) != 1) {
-                printf("Erro: entrada inválida recebida do cliente.\n");
-                continue;
-            }
-            
             if(guess1 == num_adivinha && guess2 == num_adivinha) {
-
-                mensagem = "Empate! Ambos os jogadores acertaram o número ao mesmo tempo.";
-                send(socket1 , mensagem , strlen(mensagem) , 0 );
-                send(socket2 , mensagem , strlen(mensagem) , 0 );
+                
+                enviar_mensagem(socket1, "Empate! Ambos os jogadores acertaram o número ao mesmo tempo.");
+                enviar_mensagem(socket2, "Empate! Ambos os jogadores acertaram o número ao mesmo tempo.");
                 break;
             }
              
@@ -145,6 +138,10 @@ int main() {
          
         turno++;
     }
+
+    close(socket1);
+    close(socket2);
+    close(socket_server);
 
     return 0;
 }
