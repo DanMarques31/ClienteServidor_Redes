@@ -78,6 +78,7 @@ int main() {
     	memset(buffer, 0, sizeof(buffer));
   	}
 
+    // Continua lendo até acabar as mensagens do servidor
     while (read(sock , buffer, 1024) > 0) {
         printf("%s\n", buffer);
         memset(buffer, 0, sizeof(buffer));

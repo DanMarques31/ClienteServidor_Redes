@@ -121,6 +121,7 @@ int main() {
         turno++;
     }
 
+    // Printa o número que era para ser adivinhado.
     if (tentativas == 0) {
 
         char fim_de_jogo[50];
@@ -129,6 +130,7 @@ int main() {
         enviar_mensagem(socket2, fim_de_jogo);
     } 
 
+    // limpa os buffers e fecha a conexão
     memset(buffer1, 0, sizeof(buffer1));
     memset(buffer2, 0, sizeof(buffer2));
     close(socket1);
