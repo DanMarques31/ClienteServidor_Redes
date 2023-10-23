@@ -15,7 +15,9 @@ Depois compilar o cliente: gcc cliente.c -o client
 Execução:
 
 Para execução deverá ser aberto 3 terminais no mesmo diretório.
+
 Antes de tudo no primeiro terminal deverá ser executado o servidor: ./server
+
 Nos outros dois terminais deverá ser executado os clientes: ./client
 
 Após os dois clientes se conectarem o jogo começará.
