@@ -77,68 +77,60 @@ int main() {
     int tentativas = 6; // Total de tentativas (3 para cada jogador)
     int turno = rand() % 2; // Decide aleatoriamente quem começa
 
-    while(tentativas > 0) {
-            
-        int socket_atual = turno % 2 == 0 ? socket1 : socket2;
-        int outro_socket = turno % 2 == 0 ? socket2 : socket1;
-        char* buffer_atual = turno % 2 == 0 ? buffer1 : buffer2;
+    while (tentativas > 0) {
 
-        memset(buffer_atual, 0, sizeof(buffer_atual));
+        int socket_atual = turno % 2 == 0 ? socket1 : socket2; // caso par escolhe o socket1, caso ímpar socket2
+        int outro_socket = turno % 2 == 0 ? socket2 : socket1; // define o outro socket
+        char* buffer_atual = turno % 2 == 0 ? buffer1 : buffer2; 
+
+        memset(buffer_atual, 0, MAX_BUFFER);
 
         enviar_mensagem(socket_atual, "Sua vez de jogar.");
         enviar_mensagem(outro_socket, "Aguarde a sua vez.");
 
-        // Receba a tentativa do jogador atual
+        // Recebe a tentativa do jogador atual e verifica se esta é uma entrada inválida
         if (receber_tentativa(socket_atual, buffer_atual) < 0) {
             perror("Falha na leitura da tentativa");
             break;
         }
 
-        int guessed_number;
+        int tentativa = atoi(buffer_atual); // Converte a tentativa em um número inteiro
 
-        if (sscanf(buffer_atual, "%d", &guessed_number) != 1) {
-            printf("Erro: entrada inválida recebida do cliente.\n");
-            continue;
+        if (tentativa == num_adivinha) {
+            enviar_mensagem(socket_atual, "Parabéns! Você acertou o número!\n");
+            enviar_mensagem(outro_socket, "Fim de jogo! Você perdeu.\n");
+            sleep(1); // Espera 1 segundo antes de terminar o jogo
+            break;
         }
 
-        if(guessed_number == num_adivinha) {
-            enviar_mensagem(socket_atual, "Parabéns! Você acertou o número!");
+        else if (tentativa > num_adivinha) {
+            enviar_mensagem(socket_atual, "O número que você precisa adivinhar é menor!\n");
         } 
-        
-        else if(guessed_number > num_adivinha) {
-            enviar_mensagem(socket_atual, "O número que você precisa adivinhar é menor!");
-        } 
-        
+
         else {
-            enviar_mensagem(socket_atual, "O número que você precisa adivinhar é maior!");
+            enviar_mensagem(socket_atual, "O número que você precisa adivinhar é maior!\n");
         }
-         
+        
         tentativas--;
-         
-        if(tentativas == 0) {
-            enviar_mensagem(socket1, "Fim de jogo! Nenhum dos jogadores acertou o número.");
-            enviar_mensagem(socket2, "Fim de jogo! Nenhum dos jogadores acertou o número.");
+        
+        if (tentativas == 0) {
+            enviar_mensagem(socket1, "Fim de jogo! Nenhum dos jogadores acertou o número.\n");
+            enviar_mensagem(socket2, "Fim de jogo! Nenhum dos jogadores acertou o número.\n");
         } 
-         
-        else if(tentativas % 2 == 0) { // Apenas envia a mensagem quando ambos os jogadores tiverem respondido
-            
-            // Verifica se ambos os jogadores acertaram o número ao mesmo tempo
-            int guess1, guess2;
-            
-            if(guess1 == num_adivinha && guess2 == num_adivinha) {
-                
-                enviar_mensagem(socket1, "Empate! Ambos os jogadores acertaram o número ao mesmo tempo.");
-                enviar_mensagem(socket2, "Empate! Ambos os jogadores acertaram o número ao mesmo tempo.");
-                break;
-            }
-             
-            memset(buffer1, 0, sizeof(buffer1));
-            memset(buffer2, 0, sizeof(buffer2));
-        }
-         
+
         turno++;
     }
 
+    if (tentativas == 0) {
+
+        char fim_de_jogo[50];
+        sprintf(fim_de_jogo, "O número a ser adivinhado era %d.\n", num_adivinha);
+        enviar_mensagem(socket1, fim_de_jogo);
+        enviar_mensagem(socket2, fim_de_jogo);
+    } 
+
+    memset(buffer1, 0, sizeof(buffer1));
+    memset(buffer2, 0, sizeof(buffer2));
     close(socket1);
     close(socket2);
     close(socket_server);
