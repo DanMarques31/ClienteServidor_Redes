@@ -9,6 +9,7 @@ Compilação:
 O usuário deverá compilar o programa utilizando GCC.
 
 Primeiro compilar o servidor: gcc server.c -o server
+
 Depois compilar o cliente: gcc cliente.c -o client
 
 Execução:
